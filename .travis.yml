@@ -6,7 +6,7 @@ env:
     - PIP_DEPS="coveralls pytest-cov flake8"
 
 python:
-  - '3.6'
+  - '3.9'
 
 before_install:
   - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)

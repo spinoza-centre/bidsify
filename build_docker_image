@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build -t lukassnoek/bidsify:$1 -t lukassnoek/bidsify:latest .
+docker build -t tknapen/bidsify:$1 -t tknapen/bidsify:latest .

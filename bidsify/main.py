@@ -102,11 +102,11 @@ def run_cmd():
                         required=False, action='store_true',
                         default=False)
     args = parser.parse_args()
-    
+
     if args.out is None:
         args.out = op.join(op.dirname(args.directory), 'bids')
         print("Setting output-dir to %s" % args.out)
- 
+
     if args.spinoza:
         args.config_file = op.join(op.dirname(__file__), 'data', 'spinoza_cfg.yml')
 
@@ -157,7 +157,7 @@ def bidsify(cfg_path, directory, out_dir, validate):
     # First, parse the config file
     cfg = _parse_cfg(cfg_path, directory, out_dir)
     cfg['orig_cfg_path'] = cfg_path
-  
+
     # Check whether everything is available
     if not check_executable('dcm2niix'):
         msg = """The program 'dcm2niix' was not found on this computer;
@@ -177,7 +177,7 @@ def bidsify(cfg_path, directory, out_dir, validate):
     options = cfg['options']
     out_dir = options['out_dir']
     subject_stem = options['subject_stem']
-    
+
     # Find subject directories
     sub_dirs = [d for d in sorted(glob(op.join(directory, '%s*' % subject_stem)))
                 if op.isdir(d)]
@@ -350,19 +350,19 @@ def _process_directory(cdir, out_dir, cfg, is_sess=False):
     for data_dir in data_dirs:
         _add_missing_BIDS_metadata_and_save_to_disk(data_dir, cfg)
 
-    # Reorient2std 
+    # Reorient2std
     if not 'TRAVIS' in os.environ:
         # only run when not on Travis CI (on which FSL is not installed)
         all_niis = glob(op.join(this_out_dir, '*', '*.nii.gz'))
         Parallel(n_jobs=n_cores)(delayed(_reorient_file)(f) for f in all_niis)
-    
+
     # Deface the anatomical data
     if options['deface']:
         anat_files = glob(op.join(this_out_dir, 'anat', '*.nii.gz'))
         magn_files = glob(op.join(this_out_dir, 'fmap', '*magnitude*.nii.gz'))
         to_deface = anat_files + magn_files
         Parallel(n_jobs=n_cores)(delayed(_deface)(f) for f in to_deface)
-    
+
     if 'spinoza_cfg' in op.basename(cfg['orig_cfg_path']):
         for key in dtype_elements:
             cfg.pop(key)
@@ -400,7 +400,7 @@ def _parse_cfg(cfg_file, raw_data_dir, out_dir):
     if 'subject_stem' not in options:
         cfg['options']['subject_stem'] = 'sub'
 
-    cfg['options']['out_dir'] = out_dir 
+    cfg['options']['out_dir'] = out_dir
 
     if 'spinoza_data' not in options:
         cfg['options']['spinoza_data'] = False
@@ -411,7 +411,7 @@ def _parse_cfg(cfg_file, raw_data_dir, out_dir):
     if cfg['options']['deface'] and 'FSLDIR' not in os.environ.keys():
         warnings.warn("Cannot deface because FSL is not installed ...")
         cfg['options']['deface'] = False
-    
+
     # Check if nipype/pydeface is installed; if not, deface = False
     if cfg['options']['deface']:
         try:
@@ -671,6 +671,8 @@ def _add_missing_BIDS_metadata_and_save_to_disk(data_dir, cfg):
             common_metadata['IntendedFor'] = [op.join(ses2append, 'func', op.basename(f))
                                               for f in func_files]
 
+        # need to add the "intended for" information for the func files to the relevant epi files.
+
         # Find relevant jsons
         jsons = glob(op.join(data_dir, '*_%s.json' % mtype))
 
@@ -681,7 +683,7 @@ def _add_missing_BIDS_metadata_and_save_to_disk(data_dir, cfg):
                 acqtype = fbase.split('acq-')[-1].split('_')[0]
             else:
                 acqtype = None
-
+            print(this_json)
             # this_metadata refers to metadata meant for current json
             current_metadata = copy(common_metadata)
             if 'spinoza_metadata' in cfg.keys():
@@ -748,12 +750,12 @@ def _add_missing_BIDS_metadata_and_save_to_disk(data_dir, cfg):
                     sed = this_json_opened['SliceEncodingDirection']
                 else:
                     sed = 'none'
-                
+
                 if 'SliceEncodingDirection' in current_metadata.keys():
                     sed = current_metadata['SliceEncodingDirection']
                 else:
                     sed = 'none'
-                
+
                 if 'spinoza_metadata' in cfg.keys():
                     this_tr = this_json_opened['RepetitionTime']
                     corresp_func = this_json.replace('.json', '.nii.gz')
@@ -762,7 +764,7 @@ def _add_missing_BIDS_metadata_and_save_to_disk(data_dir, cfg):
                         mb_factor = int(this_json_opened['MultibandAccelerationFactor'])
                     else:
                         mb_factor = 0
-                    
+
                     if 'MultibandAccelerationFactor' in current_metadata.keys():
                         mb_factor = int(current_metadata['MultibandAccelerationFactor'])
                     else:
@@ -775,12 +777,12 @@ def _add_missing_BIDS_metadata_and_save_to_disk(data_dir, cfg):
 
                     slice_timing = slice_timing.tolist()
                     current_metadata.update({'SliceTiming': slice_timing})
-            
+
             _append_to_json(this_json, current_metadata)
 
 
 def _reorient_file(f):
-    """ Reorient MRI file """ 
+    """ Reorient MRI file """
     _run_cmd(['fslreorient2std', f, f])
 
 

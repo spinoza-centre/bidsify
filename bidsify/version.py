@@ -29,10 +29,10 @@ CLASSIFIERS = ["Development Status :: 3 - Alpha",
 description = "bidsify: Converts your (raw) data to the BIDS-format"
 
 NAME = "bidsify"
-MAINTAINER = "Lukas Snoek"
-MAINTAINER_EMAIL = "lukassnoek@gmail.com"
+MAINTAINER = "Tomas Knapen"
+MAINTAINER_EMAIL = "tknapen@gmail.com"
 DESCRIPTION = description
-URL = "https://github.com/spinoza-rec/bidsify"
+URL = "https://github.com/spinoza-centre/bidsify"
 DOWNLOAD_URL = ""
 LICENSE = "3-clause BSD"
 AUTHOR = "Lukas Snoek"
